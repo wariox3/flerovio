@@ -24,6 +24,7 @@ class Actualizacion:
     url_descarga: str
     notas: str
     nombre_archivo: str
+    url_pagina: str = ""
 
 
 def _parse_version(s: str) -> tuple[int, ...]:
@@ -111,6 +112,7 @@ class VerificadorActualizaciones(QObject):
             url_descarga=asset["browser_download_url"],
             notas=datos.get("body") or "",
             nombre_archivo=asset["name"],
+            url_pagina=datos.get("html_url") or "",
         )
         _log.info("Actualización %s disponible", actualizacion.version)
         self.actualizacion_disponible.emit(actualizacion)

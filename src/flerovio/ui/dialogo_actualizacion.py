@@ -10,8 +10,8 @@ import tempfile
 from pathlib import Path
 
 import httpx
-from PySide6.QtCore import QObject, QThread, QTimer, Signal
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtCore import QObject, QThread, QTimer, QUrl, Signal
+from PySide6.QtGui import QCloseEvent, QDesktopServices
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -115,12 +115,22 @@ class DialogoActualizacion(QDialog):
         self.btn_instalar = self.botones.addButton(
             "Instalar ahora", QDialogButtonBox.ButtonRole.AcceptRole
         )
+        self.btn_pagina = self.botones.addButton(
+            "Página de descargas", QDialogButtonBox.ButtonRole.ActionRole
+        )
         self.btn_mas_tarde = self.botones.addButton(
             "Más tarde", QDialogButtonBox.ButtonRole.RejectRole
         )
         self.btn_instalar.clicked.connect(self._iniciar_descarga)
+        self.btn_pagina.clicked.connect(self._abrir_pagina_descargas)
         self.btn_mas_tarde.clicked.connect(self.reject)
+        self.btn_pagina.setEnabled(bool(self._actualizacion.url_pagina))
         disposicion.addWidget(self.botones)
+
+    def _abrir_pagina_descargas(self) -> None:
+        url = self._actualizacion.url_pagina
+        if url:
+            QDesktopServices.openUrl(QUrl(url))
 
     def _iniciar_descarga(self) -> None:
         self.btn_instalar.setEnabled(False)

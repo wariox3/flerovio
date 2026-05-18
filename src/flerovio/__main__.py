@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from PySide6.QtCore import QThread
+from PySide6.QtCore import QThread, QTimer
 from PySide6.QtWidgets import QApplication, QDialog, QWidget
 
 from flerovio import __version__
@@ -136,10 +136,15 @@ def _lanzar_verificacion(
     hilo.started.connect(verificador.ejecutar)
     verificador.finalizado.connect(hilo.quit)
 
-    def _al_disponible(actualizacion: Actualizacion) -> None:
+    def _mostrar_dialogo(actualizacion: Actualizacion) -> None:
         dialogo = DialogoActualizacion(actualizacion, padre=ventana)
         dialogo.instalacion_lanzada.connect(app.quit)
         dialogo.exec()
+
+    def _al_disponible(actualizacion: Actualizacion) -> None:
+        # El signal llega desde el hilo del verificador; reprogramamos en
+        # el hilo de la UI para poder usar `ventana` como padre del diálogo.
+        QTimer.singleShot(0, ventana, lambda: _mostrar_dialogo(actualizacion))
 
     verificador.actualizacion_disponible.connect(_al_disponible)
     hilo.start()
