@@ -22,7 +22,19 @@ def _manejar(
         return
 
     _log.critical("Excepción no capturada", exc_info=(tipo, valor, rastro))
+    _mostrar_dialogo(tipo, valor, rastro)
 
+
+def _mostrar_dialogo(
+    tipo: type[BaseException],
+    valor: BaseException,
+    rastro: TracebackType | None,
+) -> None:
+    """Muestra un QMessageBox modal con el detalle del error.
+
+    Separado de _manejar para poder mockearlo en tests sin abrir un diálogo real
+    (que bloquearía en CI sin display).
+    """
     if QApplication.instance() is None:
         return
 

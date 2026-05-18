@@ -1,6 +1,7 @@
 import logging
 import sys
 
+from flerovio.nucleo import excepciones
 from flerovio.nucleo.excepciones import instalar_manejador_global
 
 
@@ -13,7 +14,11 @@ def test_instalar_manejador_global_reemplaza_excepthook():
         sys.excepthook = original
 
 
-def test_manejador_registra_excepcion(caplog):
+def test_manejador_registra_excepcion(caplog, monkeypatch):
+    # Evita que el manejador abra un QMessageBox modal real, que bloquearía en
+    # entornos sin UI (Windows CI con offscreen, headless en general).
+    monkeypatch.setattr(excepciones, "_mostrar_dialogo", lambda *a, **kw: None)
+
     original = sys.excepthook
     try:
         instalar_manejador_global()
