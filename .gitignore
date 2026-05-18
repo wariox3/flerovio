@@ -1,0 +1,20 @@
+# Byte-compiled / build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# PyInstaller (excluye los .spec generados en raíz, no los versionados en packaging/)
+*.spec
+!packaging/**/*.spec
+
+# Output del instalador de Inno Setup
+packaging/windows/Output/
