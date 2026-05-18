@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from flerovio import __version__
 from flerovio.servicios.cliente_api import ClienteAPI
 from flerovio.servicios.modelos import ErrorAPI, Sesion
 
@@ -63,6 +64,7 @@ class DialogoLogin(QDialog):
 
         self.setWindowTitle("Iniciar sesión — Flerovio")
         self.setModal(True)
+        self.setMinimumWidth(420)
 
         self._construir_ui(email_inicial, recordarme_inicial)
 
@@ -104,6 +106,11 @@ class DialogoLogin(QDialog):
         self.botones.accepted.connect(self._enviar)
         self.botones.rejected.connect(self.reject)
         disposicion.addWidget(self.botones)
+
+        self.etiqueta_version = QLabel(f"Versión {__version__}")
+        self.etiqueta_version.setStyleSheet("color: #888; font-size: 11px;")
+        self.etiqueta_version.setAlignment(Qt.AlignmentFlag.AlignRight)
+        disposicion.addWidget(self.etiqueta_version)
 
         self.campo_email.returnPressed.connect(self._enviar)
         self.campo_contrasena.returnPressed.connect(self._enviar)
