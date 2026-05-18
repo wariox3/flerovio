@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 from PySide6.QtCore import QCoreApplication, QSettings
 
@@ -17,3 +19,18 @@ def ajustes_aislados(tmp_path, monkeypatch):
         str(tmp_path),
     )
     yield
+
+
+@pytest.fixture(autouse=True)
+def aislar_registro():
+    """Limpia los handlers de registro instalados por configurar_registro().
+
+    Sin esto, el StreamHandler a stderr instalado por un test anterior
+    persiste y escupe tracebacks de tests que prueban el excepthook.
+    """
+    yield
+    raiz = logging.getLogger()
+    for h in list(raiz.handlers):
+        if getattr(h, "_flerovio", False):
+            raiz.removeHandler(h)
+            h.close()

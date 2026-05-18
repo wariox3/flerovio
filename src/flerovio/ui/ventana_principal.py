@@ -1,10 +1,10 @@
 import logging
 
-from PySide6.QtCore import Signal
-from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
+from PySide6.QtCore import QUrl, Signal
+from PySide6.QtGui import QAction, QCloseEvent, QDesktopServices, QKeySequence
 from PySide6.QtWidgets import QLabel, QMainWindow, QMessageBox, QVBoxLayout, QWidget
 
-from flerovio import __version__
+from flerovio import URL_MANUAL, __version__
 from flerovio.nucleo.configuracion import (
     cargar_geometria_ventana,
     guardar_geometria_ventana,
@@ -65,6 +65,15 @@ class VentanaPrincipal(QMainWindow):
         menu_archivo.addAction(self.accion_salir)
 
         menu_ayuda = barra.addMenu("A&yuda")
+
+        self.accion_manual = QAction("&Manual de usuario", self)
+        self.accion_manual.setShortcut(QKeySequence.StandardKey.HelpContents)
+        self.accion_manual.setStatusTip("Abrir el manual de usuario en el navegador")
+        self.accion_manual.triggered.connect(self._abrir_manual)
+        menu_ayuda.addAction(self.accion_manual)
+
+        menu_ayuda.addSeparator()
+
         self.accion_acerca_de = QAction("&Acerca de Flerovio…", self)
         self.accion_acerca_de.setStatusTip("Información sobre la aplicación")
         self.accion_acerca_de.triggered.connect(self._mostrar_acerca_de)
@@ -104,6 +113,10 @@ class VentanaPrincipal(QMainWindow):
 
     def _mostrar_acerca_de(self) -> None:
         DialogoAcercaDe(self).exec()
+
+    def _abrir_manual(self) -> None:
+        _log.info("Abriendo manual de usuario en el navegador")
+        QDesktopServices.openUrl(QUrl(URL_MANUAL))
 
     def _restaurar_geometria(self) -> None:
         geometria, estado = cargar_geometria_ventana()

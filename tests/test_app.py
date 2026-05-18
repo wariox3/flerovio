@@ -40,6 +40,29 @@ def test_acciones_principales_existen(qtbot):
     assert ventana.accion_salir.text() == "&Salir"
     assert "Acerca de" in ventana.accion_acerca_de.text()
     assert "Cerrar sesión" in ventana.accion_cerrar_sesion.text()
+    assert "Manual" in ventana.accion_manual.text()
+
+
+def test_manual_abre_url_en_navegador(qtbot, monkeypatch):
+    from PySide6.QtCore import QUrl
+    from PySide6.QtGui import QDesktopServices
+
+    from flerovio import URL_MANUAL
+
+    ventana = VentanaPrincipal()
+    qtbot.addWidget(ventana)
+
+    urls_abiertas: list[str] = []
+
+    def _capturar(url):
+        texto = url.toString() if isinstance(url, QUrl) else str(url)
+        urls_abiertas.append(texto)
+        return True
+
+    monkeypatch.setattr(QDesktopServices, "openUrl", _capturar)
+
+    ventana.accion_manual.trigger()
+    assert urls_abiertas == [URL_MANUAL]
 
 
 def test_cerrar_sesion_emite_senal_al_confirmar(qtbot, monkeypatch):

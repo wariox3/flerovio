@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from PySide6.QtCore import QObject, Qt, QThread, Signal
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
     QCheckBox,
     QDialog,
@@ -151,6 +152,20 @@ class DialogoLogin(QDialog):
         self.botones.button(QDialogButtonBox.StandardButton.Ok).setEnabled(not cargando)
         cursor = Qt.CursorShape.WaitCursor if cargando else Qt.CursorShape.ArrowCursor
         self.setCursor(cursor)
+
+    def done(self, resultado: int) -> None:
+        """Garantiza que el hilo de login termine antes de cerrar el diálogo."""
+        self._terminar_hilo_si_corre()
+        super().done(resultado)
+
+    def closeEvent(self, evento: QCloseEvent) -> None:
+        self._terminar_hilo_si_corre()
+        super().closeEvent(evento)
+
+    def _terminar_hilo_si_corre(self) -> None:
+        if self._hilo is not None and self._hilo.isRunning():
+            self._hilo.quit()
+            self._hilo.wait(2000)
 
     def _limpiar_hilo(self) -> None:
         if self._trabajador is not None:

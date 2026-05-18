@@ -11,6 +11,7 @@ from pathlib import Path
 
 import httpx
 from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -166,6 +167,20 @@ class DialogoActualizacion(QDialog):
         self.btn_instalar.setEnabled(True)
         self.btn_mas_tarde.setEnabled(True)
         self.barra.setVisible(False)
+
+    def done(self, resultado: int) -> None:
+        """Garantiza que el hilo de descarga termine antes de cerrar el diálogo."""
+        self._terminar_hilo_si_corre()
+        super().done(resultado)
+
+    def closeEvent(self, evento: QCloseEvent) -> None:
+        self._terminar_hilo_si_corre()
+        super().closeEvent(evento)
+
+    def _terminar_hilo_si_corre(self) -> None:
+        if self._hilo is not None and self._hilo.isRunning():
+            self._hilo.quit()
+            self._hilo.wait(2000)
 
     def _limpiar_hilo(self) -> None:
         if self._descargador is not None:
