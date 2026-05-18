@@ -48,7 +48,9 @@ jobs:
       - name: Correr tests
         env:
           QT_QPA_PLATFORM: offscreen
-        run: pytest -q
+          PYTHONUNBUFFERED: "1"
+        # -v para ver cada test apenas arranca; --tb=short para tracebacks compactos.
+        run: pytest -v --tb=short
 
       - name: Lint
         run: ruff check .
