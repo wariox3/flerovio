@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 import httpx
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, QTimer, Signal
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
     QDialog,
@@ -152,13 +152,42 @@ class DialogoActualizacion(QDialog):
             self.barra.setRange(0, 0)
 
     def _on_completado(self, ruta: str) -> None:
+        ruta_path = Path(ruta)
+        if not ruta_path.exists():
+            _log.error("El instalador descargado no existe en %s", ruta)
+            self._on_error(f"El archivo descargado no se encuentra: {ruta}")
+            return
+        tamano = ruta_path.stat().st_size
+        _log.info("Instalador descargado: %s (%.1f MB)", ruta, tamano / 1024 / 1024)
+        if tamano < 1024 * 1024:  # < 1 MB es sospechoso
+            _log.error("El instalador parece truncado: %d bytes", tamano)
+            self._on_error(
+                f"La descarga parece estar incompleta ({tamano} bytes).\n"
+                "Intenta de nuevo."
+            )
+            return
+
         self.etiqueta_estado.setText("Lanzando instalador…")
         try:
             self._lanzar_instalador(ruta)
+            _log.info("Instalador lanzado correctamente")
         except OSError as e:
             _log.exception("Fallo al lanzar instalador")
-            self._on_error(f"No se pudo lanzar el instalador: {e}")
+            self._on_error(
+                f"No se pudo lanzar el instalador automáticamente.\n"
+                f"Puedes ejecutarlo manualmente desde:\n{ruta}\n\nDetalle: {e}"
+            )
             return
+
+        self.etiqueta_estado.setText(
+            "El instalador se está iniciando. Si Windows pide permisos, "
+            "acéptalos. Flerovio se cerrará en unos segundos."
+        )
+        # Pausa para que Windows muestre el UAC y el instalador tome el foco
+        # antes de cerrar Flerovio. Sin esta pausa el UAC se "pierde".
+        QTimer.singleShot(2500, self._finalizar)
+
+    def _finalizar(self) -> None:
         self.instalacion_lanzada.emit()
         self.accept()
 
